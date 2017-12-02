@@ -1,4 +1,5 @@
 //www.elegoo.com
+// FDS and FES version
 
 //    The direction of the car's movement
 //  ENA   ENB   IN1   IN2   IN3   IN4   Description  
@@ -77,13 +78,15 @@ void setup()
 }
 
 //Repeat execution
-void loop() {
-  forward();  //go forward
-  delay(1000);//delay 1000 ms
-  back();     //go back
+void loop() 
+{
+  forward();      // go forward
+  delay(1000);    // delay 1000 ms
+  back();         // go back
   delay(1000);
-  left();     //turning left
+  left();         // turning left
   delay(1000);
-  right();    //turning right
+  right();        // turning right
   delay(1000);
 }
+

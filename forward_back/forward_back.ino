@@ -33,7 +33,8 @@
 #define IN3 9
 #define IN4 11
 
-void setup() {
+void setup() 
+{
   pinMode(IN1, OUTPUT);
   pinMode(IN2, OUTPUT);
   pinMode(IN3, OUTPUT);
@@ -44,7 +45,8 @@ void setup() {
   digitalWrite(ENB, HIGH); 
 }
 
-void loop() {
+void loop() 
+{
   digitalWrite(IN1, HIGH);      
   digitalWrite(IN2, LOW); 
   digitalWrite(IN3, LOW);      
@@ -65,6 +67,7 @@ void loop() {
   digitalWrite(IN4, LOW);   //go back
   
   delay(500);
+  
   
   digitalWrite(IN1, LOW);      
   digitalWrite(IN2, LOW); 
