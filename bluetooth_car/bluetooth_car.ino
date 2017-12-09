@@ -85,8 +85,8 @@ void setup()
 
 void loop() 
 { 
-  getstr = Serial.read();
-  switch(getstr){
+  cmd = Serial.read();
+  switch ( cmd ) {
     case 'f': forward(); break;
     case 'b': back();   break;
     case 'l': left();   break;
