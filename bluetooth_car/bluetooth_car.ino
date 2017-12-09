@@ -36,24 +36,24 @@ void back()
 
 void left()
 {
-  analogWrite( ENA, carSpeed / 2 );  // left wheels going slower
+  analogWrite( ENA, carSpeed - 50 );  // left wheels going slower
   analogWrite( ENB, carSpeed );
   digitalWrite(IN1,HIGH);    
   digitalWrite(IN2,LOW);
   digitalWrite(IN3,LOW);	
   digitalWrite(IN4,HIGH); 
-  Serial.println("Left");
+  Serial.println("Left -50");
 }
 
 void right()
 {
   analogWrite(ENA,carSpeed);
-  analogWrite(ENB,carSpeed / 2 ); // Right wheels going slower
+  analogWrite(ENB,carSpeed - 50 ); // Right wheels going slower
   digitalWrite(IN1,HIGH);
   digitalWrite(IN2,LOW);
   digitalWrite(IN3,LOW);
   digitalWrite(IN4,HIGH);
-  Serial.println("Right");
+  Serial.println("Right -50");
 }
 
 void stop()
