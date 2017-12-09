@@ -10,7 +10,7 @@
 
 unsigned char carSpeed = 150;
 bool state = LOW;
-char getstr;
+char cmd;
 
 void forward()
 { 
@@ -36,11 +36,11 @@ void back()
 
 void left()
 {
-  analogWrite(ENA,carSpeed);
-  analogWrite(ENB,carSpeed);
-  digitalWrite(IN1,LOW);
-  digitalWrite(IN2,HIGH);
-  digitalWrite(IN3,LOW);
+  analogWrite( ENA, carSpeed / 2 );  // left wheels going slower
+  analogWrite( ENB, carSpeed );
+  digitalWrite(IN1,HIGH);    
+  digitalWrite(IN2,LOW);
+  digitalWrite(IN3,LOW);	
   digitalWrite(IN4,HIGH); 
   Serial.println("Left");
 }
@@ -48,11 +48,11 @@ void left()
 void right()
 {
   analogWrite(ENA,carSpeed);
-  analogWrite(ENB,carSpeed);
+  analogWrite(ENB,carSpeed / 2 ); // Right wheels going slower
   digitalWrite(IN1,HIGH);
   digitalWrite(IN2,LOW);
-  digitalWrite(IN3,HIGH);
-  digitalWrite(IN4,LOW);
+  digitalWrite(IN3,LOW);
+  digitalWrite(IN4,HIGH);
   Serial.println("Right");
 }
 
@@ -81,10 +81,11 @@ void setup()
   pinMode(ENA,OUTPUT);
   pinMode(ENB,OUTPUT);
   stop();
-}
+} 
+
 
 void loop() 
-{ 
+{
   cmd = Serial.read();
   switch ( cmd ) {
     case 'f': forward(); break;
