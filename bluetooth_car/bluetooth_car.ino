@@ -46,7 +46,7 @@ void left()
 }
 
 void right()
-{
+{ 
   analogWrite(ENA,carSpeed);
   analogWrite(ENB,carSpeed - 50 ); // Right wheels going slower
   digitalWrite(IN1,HIGH);
@@ -56,6 +56,32 @@ void right()
   Serial.println("Right");
 }
 
+void back_left()
+{
+	analogWrite( ENA, carSpeed - 50 );
+	analogWrite( ENB, carSpeed );
+	digitalWrite( IN1, LOW );
+	digitalWrite( IN2, HIGH );
+	digitalWrite( IN3, HIGH );
+	digitalWrite( IN4, LOW );
+	Serial.print("Back Left ");
+	Serial.println( carSpeed - 50 );
+}
+
+void back_right ()
+{
+	analogWrite( ENA, carSpeed );
+	analogWrite( ENB, carSpeed - 50 );
+	digitalWrite( IN1, LOW );
+	digitalWrite( IN2, HIGH );
+	digitalWrite( IN3, HIGH );
+	digitalWrite( IN4, LOW );
+	Serial.print("Back Right ");
+	Serial.println( carSpeed -50 );
+}
+
+	
+		
 void stop()
 {
   digitalWrite(ENA,LOW);
@@ -91,6 +117,8 @@ void loop()
     case 'f': forward(); break;
     case 'b': back();   break;
     case 'l': left();   break;
+	case 'L': back_left(); break;
+	case 'R': back_right(); break;
     case 'r': right();  break;
     case 's': stop();   break;
     case 'a': stateChange(); break;
