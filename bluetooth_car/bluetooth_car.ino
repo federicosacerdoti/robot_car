@@ -42,7 +42,7 @@ void left()
   digitalWrite(IN2,LOW);
   digitalWrite(IN3,LOW);	
   digitalWrite(IN4,HIGH); 
-  Serial.println("Left -50");
+  Serial.println("Left");
 }
 
 void right()
@@ -53,7 +53,7 @@ void right()
   digitalWrite(IN2,LOW);
   digitalWrite(IN3,LOW);
   digitalWrite(IN4,HIGH);
-  Serial.println("Right -50");
+  Serial.println("Right");
 }
 
 void stop()
