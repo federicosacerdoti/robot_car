@@ -35,25 +35,28 @@ void back() {
   Serial.println("Back");
 }
 
-void left() {
-  analogWrite(ENA, carSpeed);
-  analogWrite(ENB, carSpeed);
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH); 
+void left()
+{
+  analogWrite( ENA, carSpeed - 50 );  // left wheels going slower
+  analogWrite( ENB, carSpeed );
+  digitalWrite(IN1,HIGH);    
+  digitalWrite(IN2,LOW);
+  digitalWrite(IN3,LOW);	
+  digitalWrite(IN4,HIGH); 
   Serial.println("Left");
 }
 
-void right() {
-  analogWrite(ENA, carSpeed);
-  analogWrite(ENB, carSpeed);
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
+void right()
+{ 
+  analogWrite(ENA,carSpeed);
+  analogWrite(ENB,carSpeed - 50 ); // Right wheels going slower
+  digitalWrite(IN1,HIGH);
+  digitalWrite(IN2,LOW);
+  digitalWrite(IN3,LOW);
+  digitalWrite(IN4,HIGH);
   Serial.println("Right");
 }
+
 
 void stop() {
   digitalWrite(ENA, LOW);
@@ -61,16 +64,16 @@ void stop() {
   Serial.println("Stop!");
 } 
 
-//Ultrasonic distance measurement Sub function
-int Distance_test() {
+// Ultrasonic distance measurement. Returns distance in cm.
+int distance_test() {
   digitalWrite(Trig, LOW);   
   delayMicroseconds(2);
   digitalWrite(Trig, HIGH);  
   delayMicroseconds(20);
   digitalWrite(Trig, LOW);   
-  float Fdistance = pulseIn(Echo, HIGH);  
-  Fdistance= Fdistance / 58;       
-  return (int)Fdistance;
+  float echo_time = pulseIn(Echo, HIGH);  
+  float distance_cm = echo_time / 58;       
+  return (int) distance_cm;
 }  
 
 void setup() { 
@@ -90,25 +93,30 @@ void setup() {
 void loop() { 
     myservo.write(90);  //setservo position according to scaled value
     delay(500); 
-    middleDistance = Distance_test();
-
-    if(middleDistance <= 20) {     
+    middleDistance = distance_test();
+    Serial.print( "Distance to things (cm): " );
+    Serial.print( middleDistance );
+    if (middleDistance <= 20) {     // Something is close
+		
+      // scan echos
       stop();
       delay(500);                         
       myservo.write(10);          
       delay(1000);      
-      rightDistance = Distance_test();
+      rightDistance = distance_test();
       
       delay(500);
       myservo.write(90);              
       delay(1000);                                                  
       myservo.write(180);              
       delay(1000); 
-      leftDistance = Distance_test();
+      leftDistance = distance_test();
       
       delay(500);
       myservo.write(90);              
       delay(1000);
+	  
+	  // direction control
       if(rightDistance > leftDistance) {
         right();
         delay(360);
@@ -121,12 +129,8 @@ void loop() {
         back();
         delay(180);
       }
-      else {
-        forward();
-      }
-    }  
-    else {
-        forward();
-    }                     
+    }
+	
+	forward();                   
 }
 
