@@ -64,8 +64,7 @@ void back_left()
 	digitalWrite( IN2, HIGH );
 	digitalWrite( IN3, HIGH );
 	digitalWrite( IN4, LOW );
-	Serial.print("Back Left ");
-	Serial.println( carSpeed - 50 );
+	Serial.println("Back Left");
 }
 
 void back_right ()
@@ -76,8 +75,7 @@ void back_right ()
 	digitalWrite( IN2, HIGH );
 	digitalWrite( IN3, HIGH );
 	digitalWrite( IN4, LOW );
-	Serial.print("Back Right ");
-	Serial.println( carSpeed -50 );
+	Serial.println("Back Right");
 }
 
 	
