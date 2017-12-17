@@ -41,7 +41,7 @@ void left()
   analogWrite( ENB, carSpeed );
   digitalWrite(IN1,HIGH);    
   digitalWrite(IN2,LOW);
-  digitalWrite(IN3,LOW);	
+  digitalWrite(IN3,LOW);    
   digitalWrite(IN4,HIGH); 
   Serial.println("Left");
 }
@@ -49,7 +49,7 @@ void left()
 void right()
 { 
   analogWrite(ENA,carSpeed);
-  analogWrite(ENB,carSpeed - 50 ); // Right wheels going slower
+  analogWrite(ENB,carSpeed - 50 );   // Right wheels going slower
   digitalWrite(IN1,HIGH);
   digitalWrite(IN2,LOW);
   digitalWrite(IN3,LOW);
@@ -94,43 +94,55 @@ void loop() {
     myservo.write(90);  //setservo position according to scaled value
     delay(500); 
     middleDistance = distance_test();
-    Serial.print( "Distance to things (cm): " );
-    Serial.print( middleDistance );
+    Serial.print( "Distance (cm): " );
+    Serial.println ( middleDistance );
+    
     if (middleDistance <= 20) {     // Something is close
-		
+        
       // scan echos
       stop();
-      delay(500);                         
-      myservo.write(10);          
-      delay(1000);      
+      myservo.write(50);          
+      delay(200);      
       rightDistance = distance_test();
       
-      delay(500);
-      myservo.write(90);              
-      delay(1000);                                                  
-      myservo.write(180);              
-      delay(1000); 
+      delay(100);
+      myservo.write(90); 
+      delay(500); 
+      myservo.write(130);
+      delay(500); 
       leftDistance = distance_test();
+
+      Serial.print("Distance left: ");
+      Serial.print(leftDistance);
+      Serial.print(" right ");
+      Serial.println(rightDistance);
       
-      delay(500);
-      myservo.write(90);              
-      delay(1000);
-	  
-	  // direction control
+      delay(100);
+      myservo.write(90);
+
+        // direction control
       if(rightDistance > leftDistance) {
         right();
-        delay(360);
+        delay(1000);
       }
       else if(rightDistance < leftDistance) {
         left();
-        delay(360);
+        delay(1000);
       }
-      else if((rightDistance <= 20) || (leftDistance <= 20)) {
+	  // TODO: move first
+      else if ((rightDistance <= 20) or (leftDistance <= 20)) {
         back();
-        delay(180);
+        delay(2000);
       }
+	  /*
+	  while ( right < 5 or left < 5 ) {
+	    measure
+	    back(500)
+	  }
+	  */
+      return;
     }
-	
-	forward();                   
+    
+    forward();                   
 }
 
