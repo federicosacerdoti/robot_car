@@ -1,4 +1,5 @@
-//www.elegoo.com
+// Fionn and Daddy's version, Oct-17, Jan-18
+// Adapted from original, www.elegoo.com
 
 #include <Servo.h>  //servo library
 Servo myservo;      // create servo object to control servo
@@ -12,7 +13,9 @@ int Trig = A5;
 #define IN2 8
 #define IN3 9
 #define IN4 11
-#define carSpeed 150
+#define LED 13
+
+int carSpeed = 150;
 int rightDistance = 0, leftDistance = 0, middleDistance = 0;
 
 void forward(){ 
@@ -35,6 +38,7 @@ void back() {
   Serial.println("Back");
 }
 
+/// Both forward, left slower, right faster
 void left()
 {
   analogWrite( ENA, carSpeed - 50 );  // left wheels going slower
@@ -46,6 +50,7 @@ void left()
   Serial.println("Left");
 }
 
+// Right Slower, Left faster
 void right()
 { 
   analogWrite(ENA,carSpeed);
@@ -57,6 +62,36 @@ void right()
   Serial.println("Right");
 }
 
+void back_left()
+{
+	analogWrite( ENA, carSpeed - 50 );
+	analogWrite( ENB, carSpeed );
+	digitalWrite( IN1, LOW );
+	digitalWrite( IN2, HIGH );
+	digitalWrite( IN3, HIGH );
+	digitalWrite( IN4, LOW );
+	Serial.println("Back Left");
+}
+
+void back_right ()
+{
+	analogWrite( ENA, carSpeed );
+	analogWrite( ENB, carSpeed - 50 );
+	digitalWrite( IN1, LOW );
+	digitalWrite( IN2, HIGH );
+	digitalWrite( IN3, HIGH );
+	digitalWrite( IN4, LOW );
+	Serial.println("Back Right");
+}
+
+
+void toggle_light()
+{
+  static bool state = 0; 
+  state = !state;
+  digitalWrite(LED, state);
+  Serial.println("Light");  
+}
 
 void stop() {
   digitalWrite(ENA, LOW);
