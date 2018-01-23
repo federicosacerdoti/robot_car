@@ -64,24 +64,24 @@ void right()
 
 void back_left()
 {
-	analogWrite( ENA, carSpeed - 50 );
-	analogWrite( ENB, carSpeed );
-	digitalWrite( IN1, LOW );
-	digitalWrite( IN2, HIGH );
-	digitalWrite( IN3, HIGH );
-	digitalWrite( IN4, LOW );
-	Serial.println("Back Left");
+    analogWrite( ENA, carSpeed - 50 );
+    analogWrite( ENB, carSpeed );
+    digitalWrite( IN1, LOW );
+    digitalWrite( IN2, HIGH );
+    digitalWrite( IN3, HIGH );
+    digitalWrite( IN4, LOW );
+    Serial.println("Back Left");
 }
 
 void back_right ()
 {
-	analogWrite( ENA, carSpeed );
-	analogWrite( ENB, carSpeed - 50 );
-	digitalWrite( IN1, LOW );
-	digitalWrite( IN2, HIGH );
-	digitalWrite( IN3, HIGH );
-	digitalWrite( IN4, LOW );
-	Serial.println("Back Right");
+    analogWrite( ENA, carSpeed );
+    analogWrite( ENB, carSpeed - 50 );
+    digitalWrite( IN1, LOW );
+    digitalWrite( IN2, HIGH );
+    digitalWrite( IN3, HIGH );
+    digitalWrite( IN4, LOW );
+    Serial.println("Back Right");
 }
 
 
@@ -125,9 +125,32 @@ void setup() {
   stop();
 } 
 
-void loop() { 
-    myservo.write(90);  //setservo position according to scaled value
-    delay(500); 
+void loop() 
+{ 
+	// Check Bluetooth
+	
+    if (Serial.available() > 0) {
+        cmd = Serial.read();
+        switch ( cmd ) {
+            case 'f': forward(); break;
+            case 'b': back();   break;
+            case 'l': left();   break;
+            case 'L': back_left(); break;
+            case 'R': back_right(); break;
+            case 'r': right();  break;
+            case 's': stop();   break;
+            case 'a': stateChange(); break;
+            default:  break;
+        }
+		return;
+    } 
+    
+	// check straight ahead
+	
+	if ( myservo.read() != 90 ) {
+ 	   myservo.write(90);
+	   delay(500);
+	}
     middleDistance = distance_test();
     Serial.print( "Distance (cm): " );
     Serial.println ( middleDistance );
@@ -164,17 +187,17 @@ void loop() {
         left();
         delay(1000);
       }
-	  // TODO: move first
+      // TODO: move first
       else if ((rightDistance <= 20) or (leftDistance <= 20)) {
         back();
         delay(2000);
       }
-	  /*
-	  while ( right < 5 or left < 5 ) {
-	    measure
-	    back(500)
-	  }
-	  */
+      /*
+      while ( right < 5 or left < 5 ) {
+        measure
+        back(500)
+      }
+      */
       return;
     }
     
