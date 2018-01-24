@@ -129,75 +129,75 @@ void loop()
 { 
 	// Check Bluetooth
 	
-    if (Serial.available() > 0) {
-        cmd = Serial.read();
-        switch ( cmd ) {
-            case 'f': forward(); break;
-            case 'b': back();   break;
-            case 'l': left();   break;
-            case 'L': back_left(); break;
-            case 'R': back_right(); break;
-            case 'r': right();  break;
-            case 's': stop();   break;
-            case 'a': stateChange(); break;
-            default:  break;
-        }
-		return;
-    } 
-    
+  if (Serial.available() > 0) {
+      cmd = Serial.read();
+      switch ( cmd ) {
+          case 'f': forward(); break;
+          case 'b': back();   break;
+          case 'l': left();   break;
+          case 'L': back_left(); break;
+          case 'R': back_right(); break;
+          case 'r': right();  break;
+          case 's': stop();   break;
+          case 'a': stateChange(); break;
+          default:  break;
+      }
+	return;
+  } 
+  
 	// check straight ahead
 	
-	if ( myservo.read() != 90 ) {
- 	   myservo.write(90);
-	   delay(500);
-	}
-    middleDistance = distance_test();
-    Serial.print( "Distance (cm): " );
-    Serial.println ( middleDistance );
+  if ( myservo.read() != 90 ) {
+     myservo.write(90);
+     delay(500);
+  }
+  middleDistance = distance_test();
+  Serial.print( "Distance front (cm): " );
+  Serial.println ( middleDistance );
+  
+  if (middleDistance <= 20) {     // Something is close
+      
+    // scan echos
+    stop();
+    myservo.write(50);          
+    delay(200);      
+    rightDistance = distance_test();
     
-    if (middleDistance <= 20) {     // Something is close
-        
-      // scan echos
-      stop();
-      myservo.write(50);          
-      delay(200);      
-      rightDistance = distance_test();
-      
-      delay(100);
-      myservo.write(90); 
-      delay(500); 
-      myservo.write(130);
-      delay(500); 
-      leftDistance = distance_test();
+    delay(100);
+    myservo.write(90); 
+    delay(500); 
+    myservo.write(130);
+    delay(500); 
+    leftDistance = distance_test();
 
-      Serial.print("Distance left: ");
-      Serial.print(leftDistance);
-      Serial.print(" right ");
-      Serial.println(rightDistance);
-      
-      delay(100);
-      myservo.write(90);
+    Serial.print("Distance left: ");
+    Serial.print(leftDistance);
+    Serial.print(" right ");
+    Serial.println(rightDistance);
+    
+    delay(100);
+    myservo.write(90);
 
-        // direction control
-      if(rightDistance > leftDistance) {
-        right();
-        delay(1000);
-      }
-      else if(rightDistance < leftDistance) {
-        left();
-        delay(1000);
-      }
-      // TODO: move first
-      else if ((rightDistance <= 20) or (leftDistance <= 20)) {
-        back();
-        delay(2000);
-      }
-      /*
-      while ( right < 5 or left < 5 ) {
-        measure
-        back(500)
-      }
-      */
+    // direction control
+    if(rightDistance > leftDistance) {
+      right();
+      delay(1000);
+    }
+    else if(rightDistance < leftDistance) {
+      left();
+      delay(1000);
+    }
+    // TODO: move first
+    else if ((rightDistance <= 20) or (leftDistance <= 20)) {
+      back();
+      delay(2000);
+    }
+    /*
+    while ( right < 5 or left < 5 ) {
+      measure
+      back(500)
+    }
+    */
       return;
     }
     
