@@ -8,7 +8,7 @@
 #define IN4 11
 #define LED 13
 
-unsigned char carSpeed = 150;
+unsigned char carSpeed = 255;
 bool state = LOW;
 char cmd;
 
@@ -115,8 +115,8 @@ void loop()
     case 'f': forward(); break;
     case 'b': back();   break;
     case 'l': left();   break;
-	case 'L': back_left(); break;
-	case 'R': back_right(); break;
+    case 'L': back_left(); break;
+    case 'R': back_right(); break;
     case 'r': right();  break;
     case 's': stop();   break;
     case 'a': stateChange(); break;
