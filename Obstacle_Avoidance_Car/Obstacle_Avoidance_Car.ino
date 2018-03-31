@@ -15,12 +15,12 @@ int Trig = A5;
 #define IN4 11
 #define LED 13
 
-int carSpeed = 150;
-int rightDistance = 0, leftDistance = 0, middleDistance = 0;
+int car_speed = 150;
+int in_bluetooth = 0;
 
 void forward(){ 
-  analogWrite(ENA, carSpeed);
-  analogWrite(ENB, carSpeed);
+  analogWrite(ENA, car_speed);
+  analogWrite(ENB, car_speed);
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
@@ -29,8 +29,8 @@ void forward(){
 }
 
 void back() {
-  analogWrite(ENA, carSpeed);
-  analogWrite(ENB, carSpeed);
+  analogWrite(ENA, car_speed);
+  analogWrite(ENB, car_speed);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
   digitalWrite(IN3, HIGH);
@@ -41,8 +41,8 @@ void back() {
 /// Both forward, left slower, right faster
 void left()
 {
-  analogWrite( ENA, carSpeed - 50 );  // left wheels going slower
-  analogWrite( ENB, carSpeed );
+  analogWrite( ENA, car_speed - 50 );  // left wheels going slower
+  analogWrite( ENB, car_speed );
   digitalWrite(IN1,HIGH);    
   digitalWrite(IN2,LOW);
   digitalWrite(IN3,LOW);    
@@ -53,8 +53,8 @@ void left()
 // Right Slower, Left faster
 void right()
 { 
-  analogWrite(ENA,carSpeed);
-  analogWrite(ENB,carSpeed - 50 );   // Right wheels going slower
+  analogWrite( ENA, car_speed );
+  analogWrite( ENB, car_speed - 50 );   // Right wheels going slower
   digitalWrite(IN1,HIGH);
   digitalWrite(IN2,LOW);
   digitalWrite(IN3,LOW);
@@ -64,8 +64,8 @@ void right()
 
 void back_left()
 {
-    analogWrite( ENA, carSpeed - 50 );
-    analogWrite( ENB, carSpeed );
+    analogWrite( ENA, car_speed - 50 );
+    analogWrite( ENB, car_speed );
     digitalWrite( IN1, LOW );
     digitalWrite( IN2, HIGH );
     digitalWrite( IN3, HIGH );
@@ -75,8 +75,8 @@ void back_left()
 
 void back_right ()
 {
-    analogWrite( ENA, carSpeed );
-    analogWrite( ENB, carSpeed - 50 );
+    analogWrite( ENA, car_speed );
+    analogWrite( ENB, car_speed - 50 );
     digitalWrite( IN1, LOW );
     digitalWrite( IN2, HIGH );
     digitalWrite( IN3, HIGH );
@@ -100,7 +100,8 @@ void stop() {
 } 
 
 // Ultrasonic distance measurement. Returns distance in cm.
-int distance_test() {
+int distance_test() 
+{
   digitalWrite(Trig, LOW);   
   delayMicroseconds(2);
   digitalWrite(Trig, HIGH);  
@@ -111,7 +112,8 @@ int distance_test() {
   return (int) distance_cm;
 }  
 
-void setup() { 
+void setup() 
+{ 
   myservo.attach(3);  // attach servo on pin 3 to servo object
   Serial.begin(9600);     
   pinMode(Echo, INPUT);    
@@ -125,12 +127,27 @@ void setup() {
   stop();
 } 
 
+/// 0 <= direction <= 180 servo direction in degrees.
+/// returns distance in cm 
+int check_distance( int direction, char* what )
+{  
+  if ( myservo.read() != direction ) {
+     myservo.write( direction );
+     delay(300);
+  }
+  int dist_cm = distance_test();
+  Serial.print( what );
+  Serial.print( " (cm): " );
+  Serial.println ( dist_cm );
+  return dist_cm;
+}
+
 void loop() 
 { 
 	// Check Bluetooth
 	
   if (Serial.available() > 0) {
-      cmd = Serial.read();
+      int cmd = Serial.read();
       switch ( cmd ) {
           case 'f': forward(); break;
           case 'b': back();   break;
@@ -142,65 +159,55 @@ void loop()
           case 'a': stateChange(); break;
           default:  break;
       }
-	return;
+      in_bluetooth = 0;
+	    return;
   } 
   
-	// check straight ahead
-	
-  if ( myservo.read() != 90 ) {
-     myservo.write(90);
-     delay(500);
+  // Drive a bit if just given a bluetooth command, checking bluetooth every 0.1 sec
+  if ( in_bluetooth < 100 ) {
+    in_bluetooth += 10;
+    delay(100);
+    return;
   }
-  middleDistance = distance_test();
-  Serial.print( "Distance front (cm): " );
-  Serial.println ( middleDistance );
   
-  if (middleDistance <= 20) {     // Something is close
-      
-    // scan echos
+  // Ultrasonic obstical avoidance
+  
+  int left_distance = 0;
+  int right_distance = 0;
+  int middle_distance = 0;
+	
+  // check straight ahead
+	
+  middle_distance = check_distance( 90, "front" );
+  
+  if (middle_distance <= 20) {     // Something is close
+    
     stop();
-    myservo.write(50);          
-    delay(200);      
-    rightDistance = distance_test();
     
-    delay(100);
-    myservo.write(90); 
-    delay(500); 
-    myservo.write(130);
-    delay(500); 
-    leftDistance = distance_test();
-
-    Serial.print("Distance left: ");
-    Serial.print(leftDistance);
-    Serial.print(" right ");
-    Serial.println(rightDistance);
-    
-    delay(100);
-    myservo.write(90);
+    right_distance = check_distance( 50, "right" );
+    left_distance  = check_distance( 130, "left" );
 
     // direction control
-    if(rightDistance > leftDistance) {
+    
+    while ( (right_distance <= 20) or (left_distance <= 20) ) 
+    {
+      back();
+      delay(2000);
+      right_distance = check_distance( 50, "right" );
+      left_distance  = check_distance( 130, "left" );
+    }
+    
+    if(right_distance > left_distance) {
       right();
       delay(1000);
     }
-    else if(rightDistance < leftDistance) {
+    else if(right_distance < left_distance) {
       left();
       delay(1000);
     }
-    // TODO: move first
-    else if ((rightDistance <= 20) or (leftDistance <= 20)) {
-      back();
-      delay(2000);
-    }
-    /*
-    while ( right < 5 or left < 5 ) {
-      measure
-      back(500)
-    }
-    */
-      return;
-    }
-    
-    forward();                   
+    return;
+  }
+
+  forward();                   
 }
 
