@@ -3,23 +3,20 @@
 // Jan 2018
 
 
-
-
-
-
-
-
 #include <Servo.h> //servo library
 Servo myservo; // create servo object to control servo
 int Echo = A4;  
 int Trig = A5; 
-int in1 = 6;
-int in2 = 7;
-int in3 = 8;
-int in4 = 9;
+
+// motor control
+int in1 = 7;
+int in2 = 8;
+int in3 = 9;
+int in4 = 11;
 int ENA = 5;
-int ENB = 11; 
+int ENB = 6;
 int ABS = 110;
+
 int rightDistance = 0,leftDistance = 0,middleDistance = 0 ;
 volatile int state = LOW;
 char getstr;
@@ -37,14 +34,19 @@ int Distance_test()
   return (int)Fdistance;
 }  
 
+void fwd_helper()
+{
+ digitalWrite(in1,HIGH);
+ digitalWrite(in2,LOW);
+ digitalWrite(in3,LOW);
+ digitalWrite(in4,HIGH);
+}
+
 void _mForward()
 {
  analogWrite(ENA,ABS);
  analogWrite(ENB,ABS);
- digitalWrite(in1,HIGH);
- digitalWrite(in2,LOW);
- digitalWrite(in3,HIGH);
- digitalWrite(in4,LOW);
+ fwd_helper();
  Serial.println("go forward!");
 }
 
@@ -54,31 +56,51 @@ void _mBack()
  analogWrite(ENB,ABS);
  digitalWrite(in1,LOW);
  digitalWrite(in2,HIGH);
- digitalWrite(in3,LOW);
- digitalWrite(in4,HIGH);
+ digitalWrite(in3,HIGH);
+ digitalWrite(in4,LOW);
  Serial.println("go back!");
 }
 
+// forward and left
+void left()
+{
+  analogWrite( ENA, ABS - 50 );  // left wheels going slower
+  analogWrite( ENB, ABS );
+  fwd_helper();
+  Serial.println("Left");
+}
+
+// forward and right
+void right()
+{
+  analogWrite( ENA, ABS );     // right wheels going slower
+  analogWrite( ENB, ABS - 50 );
+  fwd_helper();
+  Serial.println("Right");
+}
+
+//rotate left
 void _mleft()
 {
  analogWrite(ENA,ABS);
  analogWrite(ENB,ABS);
- digitalWrite(in1,LOW);
+ digitalWrite(in1,LOW);     // left wheels forwards
  digitalWrite(in2,HIGH);
- digitalWrite(in3,HIGH);
+ digitalWrite(in3,HIGH);    // right wheels back
  digitalWrite(in4,LOW);
- Serial.println("go left!");
+ Serial.println("rotate left!");
 }
 
+// rotate right
 void _mright()
 {
  analogWrite(ENA,ABS);
  analogWrite(ENB,ABS);
- digitalWrite(in1,HIGH);
+ digitalWrite(in1,HIGH);    // left wheels back
  digitalWrite(in2,LOW);
- digitalWrite(in3,LOW);
+ digitalWrite(in3,LOW);     // right wheels back
  digitalWrite(in4,HIGH);
- Serial.println("go right!");
+ Serial.println("rotate right!");
 } 
 void _mStop()
 {
@@ -180,10 +202,12 @@ void middlecheck()
 void checkbtinput() 
 {
   getstr = Serial.read();
-  if(getstr == 'g'){
-    _mForward();
-  } else if (getstr == 's') {
-    _mStop();
+  switch (getstr) {
+    case 'g': _mForward(); break;
+    case 'l': left(); break;
+    case 'r': right(); break;
+    default:
+    case 's': _mStop(); break;
   }
 }
 
