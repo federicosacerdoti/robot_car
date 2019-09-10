@@ -5,6 +5,7 @@
 
 #include <Servo.h> //servo library
 Servo myservo; // create servo object to control servo
+
 int Echo = A4;  
 int Trig = A5; 
 
@@ -15,57 +16,107 @@ int in3 = 9;
 int in4 = 11;
 int ENA = 5;
 int ENB = 6;
-int ABS = 110;
+int SPEED = 110;
 
 int rightDistance = 0,leftDistance = 0,middleDistance = 0 ;
 volatile int state = LOW;
 char getstr;
 
- /*Ultrasonic distance measurement Sub function*/
+//#define send 0    // see distance in console
+
+
+// Ultrasonic distance helpers
+
 int Distance_test()   
 {
   digitalWrite(Trig, LOW);   
   delayMicroseconds(2);
   digitalWrite(Trig, HIGH);  
   delayMicroseconds(20);
-  digitalWrite(Trig, LOW);   
-  float Fdistance = pulseIn(Echo, HIGH);  
-  Fdistance= Fdistance/58;       
-  return (int)Fdistance;
+  digitalWrite(Trig, LOW);
+  float echo_time = pulseIn(Echo, HIGH);  
+  float distance_cm = echo_time / 58;       
+  return (int) distance_cm;
 }  
+
+int take_right_distance()
+{
+    myservo.write(30);          
+    delay(500);      
+    int d = Distance_test();
+    #ifdef send
+    Serial.print("Right_cm=");
+    Serial.println(d);
+    #endif
+    return d;
+}
+
+int take_left_distance()
+{                                               
+    myservo.write(180);              
+    delay(100); 
+    int d = Distance_test();
+    #ifdef send
+    Serial.print("Left_cm=");
+    Serial.println(d);
+    #endif
+    return d; 
+}
+
+/// Move helpers
+
+void left_wheels_fwd()
+{
+  digitalWrite(in1,HIGH);
+  digitalWrite(in2,LOW);
+}
+
+void left_wheels_back()
+{
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, HIGH);
+}
+
+void right_wheels_fwd()
+{
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
+}
+
+void right_wheels_back()
+{
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+}
 
 void fwd_helper()
 {
- digitalWrite(in1,HIGH);
- digitalWrite(in2,LOW);
- digitalWrite(in3,LOW);
- digitalWrite(in4,HIGH);
+ left_wheels_fwd();
+ right_wheels_fwd();
 }
 
 void _mForward()
 {
- analogWrite(ENA,ABS);
- analogWrite(ENB,ABS);
+ analogWrite(ENA,SPEED);
+ analogWrite(ENB,SPEED);
  fwd_helper();
  Serial.println("go forward!");
 }
 
 void _mBack()
 {
- analogWrite(ENA,ABS);
- analogWrite(ENB,ABS);
- digitalWrite(in1,LOW);
- digitalWrite(in2,HIGH);
- digitalWrite(in3,HIGH);
- digitalWrite(in4,LOW);
+ analogWrite(ENA,SPEED);
+ analogWrite(ENB,SPEED);
+ left_wheels_back();
+ right_wheels_back();
  Serial.println("go back!");
 }
 
 // forward and left
 void left()
 {
-  analogWrite( ENA, ABS - 50 );  // left wheels going slower
-  analogWrite( ENB, ABS );
+  analogWrite( ENA, SPEED );  // left wheels going slower
+  analogWrite( ENB, 255 );
   fwd_helper();
   Serial.println("Left");
 }
@@ -73,132 +124,107 @@ void left()
 // forward and right
 void right()
 {
-  analogWrite( ENA, ABS );     // right wheels going slower
-  analogWrite( ENB, ABS - 50 );
+  analogWrite( ENB, SPEED );  // right wheels going slower
+  analogWrite( ENA, 255 );     
   fwd_helper();
   Serial.println("Right");
 }
 
-//rotate left
-void _mleft()
+void rotate_left()
 {
- analogWrite(ENA,ABS);
- analogWrite(ENB,ABS);
- digitalWrite(in1,LOW);     // left wheels forwards
- digitalWrite(in2,HIGH);
- digitalWrite(in3,HIGH);    // right wheels back
- digitalWrite(in4,LOW);
+ analogWrite(ENA,SPEED);
+ analogWrite(ENB,SPEED);
+ left_wheels_back();
+ right_wheels_fwd();
  Serial.println("rotate left!");
 }
 
-// rotate right
-void _mright()
+void rotate_right()
 {
- analogWrite(ENA,ABS);
- analogWrite(ENB,ABS);
- digitalWrite(in1,HIGH);    // left wheels back
- digitalWrite(in2,LOW);
- digitalWrite(in3,LOW);     // right wheels back
- digitalWrite(in4,HIGH);
+ analogWrite(ENA,SPEED);
+ analogWrite(ENB,SPEED);
+ left_wheels_fwd();
+ right_wheels_back();
  Serial.println("rotate right!");
 } 
+
 void _mStop()
 {
   digitalWrite(ENA,LOW);
   digitalWrite(ENB,LOW);
   Serial.println("Stop!");
 } 
-//Checking function
-void ultrasonicCheck()
+
+// Distance check and movement when stuck
+void handle_stuck()
 {
   digitalWrite(LED_BUILTIN, HIGH);   
   delay(500);                      
   digitalWrite(LED_BUILTIN, LOW);    
   delay(500);
       
-  //Move back a tiny bit
-  _mStop();
-  delay(300);                         
+  //Move back a tiny bit                       
   _mBack();
-  delay(150);
+  delay(250);
   _mStop();
   delay(500);
-  // Take right measurement                     
-  myservo.write(30);          
-  delay(1000);      
-  rightDistance = Distance_test();
-
-  #ifdef send
-  Serial.print("rightDistance=");
-  Serial.println(rightDistance);
-  #endif
-
-  // Take left measurement
-  delay(500);
-  myservo.write(90);      
-  delay(1000);                                                  
-  myservo.write(180);              
-  delay(1000); 
-  leftDistance = Distance_test(); 
-
-  #ifdef send
-  Serial.print("leftDistance=");
-  Serial.println(leftDistance);
-  #endif
+  
+  rightDistance = take_right_distance();
 
   //Re-center ultrasonic sensor
-  delay(300);
+  myservo.write(90);              
+  delay(100);
+  
+  leftDistance = take_left_distance();
+  
+  //Re-center ultrasonic sensor
   myservo.write(90);              
   delay(300);
 
-
   if(rightDistance>leftDistance)  
   {
-    _mright();
-    delay(100);
+    rotate_right();
+    delay(1000);
     middlecheck();
     delay(1500);
    }
    else if(rightDistance<leftDistance)
    {
-    _mleft();
-    delay(100);
+    rotate_left();
+    delay(1000);
     middlecheck();
     delay(1500);
    }
    else if((rightDistance<=30)||(leftDistance<=30))
    {
     _mBack();
-    delay(500);
-   }
-   else if (middleDistance<=30) {
-    _mForward();
-    delay(200);
-    middlecheck(); 
-  }
-   else
-   {
-    _mForward();
-    delay(100);
-    middlecheck();
+    delay(1000);
    }
 }  
 
-void middlecheck()
+// Go forward cautiously
+int middlecheck()
 {
   myservo.write(90);
-  middleDistance = Distance_test();
+  int d = Distance_test();
+  #ifdef send
+  Serial.print("mid_cm=");
+  Serial.println(d);
+  #endif
+  
   //Just quickly check that we aren't driving straight into something
-  if(middleDistance<=30)
+  if(d<=30)
   {
-    ultrasonicCheck();
-  } else {
-    if (getstr == 'g') {
-    _mForward();
-    }
+    handle_stuck();
   }
+  else if (getstr != 's')
+  {
+    _mForward();
+  }
+  return d;
 }
 
+// Alters global intention in 'getstr'
 void checkbtinput() 
 {
   getstr = Serial.read();
@@ -206,8 +232,11 @@ void checkbtinput()
     case 'g': _mForward(); break;
     case 'l': left(); break;
     case 'r': right(); break;
-    default:
+    case 'R': rotate_right(); break;
+    case 'L': rotate_left(); break;
+    case 'b': _mBack(); break;
     case 's': _mStop(); break;
+    default: break;
   }
 }
 
@@ -227,50 +256,36 @@ void setup()
   _mStop();
 } 
 
+
 void loop() 
 { 
-    
     checkbtinput();
-    middlecheck();
-    delay(1000);
-    middlecheck();
-    delay(1000);
-    #ifdef send
-    Serial.print("middleDistance=");
-    Serial.println(middleDistance);
+    delay(1000);      // go for 1 sec
+
+    #ifdef manual_control
+    return;
     #endif
-    // Take right measurement                     
-    myservo.write(30);          
-    delay(500);      
-    rightDistance = Distance_test();
+    
+    // Not stuck distance check
+
+    middlecheck();
+    delay(1000);    // if nothing in front, go for another 1sec
+    
+    rightDistance = take_right_distance();
     if (rightDistance<=15) 
     {
-      ultrasonicCheck();
+      handle_stuck();
     }
-    checkbtinput();
-    #ifdef send
-    Serial.print("rightDistance=");
-    Serial.println(rightDistance);
-    #endif
 
-    // Take left measurement
+    //Re-center ultrasonic sensor
+    myservo.write(90);              
     delay(100);
-    myservo.write(90);   
-    delay(100);
-    middlecheck();
-    delay(100);                                                  
-    myservo.write(180);              
-    delay(100); 
-    checkbtinput();
-    leftDistance = Distance_test(); 
+  
+    leftDistance = take_left_distance();
     if (leftDistance<=15)
     {
-      ultrasonicCheck();
+      handle_stuck();
     } 
-    #ifdef send
-    Serial.print("leftDistance=");
-    Serial.println(leftDistance);
-    #endif
 
     //Re-center ultrasonic sensor
     delay(300);
