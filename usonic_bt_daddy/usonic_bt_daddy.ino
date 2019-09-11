@@ -1,6 +1,7 @@
 //Base code made by www.elegoo.com
 //Code edited by https://danielgray.me
 // Jan 2018
+// Modified Sep19 by Daddy (FDS)
 
 
 #include <Servo.h> //servo library
@@ -22,8 +23,8 @@ int rightDistance = 0,leftDistance = 0,middleDistance = 0 ;
 volatile int state = LOW;
 char getstr;
 
-//#define send 0    // see distance in console
-
+//#define send 1    // see distance in console
+#define manual_control 1
 
 // Ultrasonic distance helpers
 
@@ -61,6 +62,13 @@ int take_left_distance()
     Serial.println(d);
     #endif
     return d; 
+}
+
+void recenter_eyes()
+{
+  //Re-center ultrasonic sensor
+  myservo.write(90);              
+  delay(150);
 }
 
 /// Move helpers
@@ -112,6 +120,23 @@ void _mBack()
  Serial.println("go back!");
 }
 
+void blazing_fwd()
+{
+ analogWrite(ENA,255);
+ analogWrite(ENB,255);
+ fwd_helper();
+ Serial.println("Blazing speed!");
+}
+
+void blazing_back()
+{
+ analogWrite(ENA,255);
+ analogWrite(ENB,255);
+ left_wheels_back();
+ right_wheels_back();
+ Serial.println("Blazing back!");
+}
+
 // forward and left
 void left()
 {
@@ -155,6 +180,15 @@ void _mStop()
   Serial.println("Stop!");
 } 
 
+void toggle_flash()
+{
+  static bool state = LOW;
+  digitalWrite(LED_BUILTIN, state);
+  state = not state;
+}
+
+// Control
+
 // Distance check and movement when stuck
 void handle_stuck()
 {
@@ -171,15 +205,11 @@ void handle_stuck()
   
   rightDistance = take_right_distance();
 
-  //Re-center ultrasonic sensor
-  myservo.write(90);              
-  delay(100);
+  recenter_eyes();
   
   leftDistance = take_left_distance();
-  
-  //Re-center ultrasonic sensor
-  myservo.write(90);              
-  delay(300);
+
+  recenter_eyes();
 
   if(rightDistance>leftDistance)  
   {
@@ -236,6 +266,9 @@ void checkbtinput()
     case 'L': rotate_left(); break;
     case 'b': _mBack(); break;
     case 's': _mStop(); break;
+    case 'f': toggle_flash(); break;
+    case 'B': blazing_fwd(); break;
+    case 'S': blazing_back(); break;
     default: break;
   }
 }
@@ -260,13 +293,21 @@ void setup()
 void loop() 
 { 
     checkbtinput();
-    delay(1000);      // go for 1 sec
+    delay(500);               // go for a bit
 
     #ifdef manual_control
+    static int n = 0;         // make it look alive!
+    if (n++ % 3 == 0) {
+      myservo.write(30);          
+      delay(200);
+      myservo.write(130);
+      delay(250);
+      myservo.write(90);
+    }
     return;
     #endif
     
-    // Not stuck distance check
+    // Not-stuck distance check
 
     middlecheck();
     delay(1000);    // if nothing in front, go for another 1sec
@@ -277,9 +318,7 @@ void loop()
       handle_stuck();
     }
 
-    //Re-center ultrasonic sensor
-    myservo.write(90);              
-    delay(100);
+    recenter_eyes();
   
     leftDistance = take_left_distance();
     if (leftDistance<=15)
@@ -287,9 +326,7 @@ void loop()
       handle_stuck();
     } 
 
-    //Re-center ultrasonic sensor
-    delay(300);
-    myservo.write(90);              
+    recenter_eyes();
     middlecheck();
     delay(200);
 }
